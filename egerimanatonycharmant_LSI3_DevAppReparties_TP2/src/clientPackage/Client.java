@@ -16,7 +16,7 @@ public class Client {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             Scanner scanner = new Scanner(System.in);
 
-            System.out.print("Entrez une opération  : ");
+            System.out.print("Entrez une opération (ex: 34 * 55) : ");
             String operation = scanner.nextLine();
 
             // Envoyer l'opération au serveur

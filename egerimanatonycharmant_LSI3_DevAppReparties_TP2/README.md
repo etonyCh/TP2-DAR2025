@@ -110,4 +110,3 @@ Le système gère plusieurs types d'erreurs :
 - Le serveur traite les connexions de manière séquentielle (une à la fois)
 - Conçu pour fonctionner en local (127.0.0.1)
 - Prend en charge uniquement les opérations binaires simples
-
