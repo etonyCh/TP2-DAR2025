@@ -2,6 +2,7 @@ package serverPackage;
 
 import java.io.*;
 import java.net.*;
+import sharedPackage.Operation;
 
 public class Server {
     public static void main(String[] args) {
@@ -10,48 +11,29 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Serveur en attente de connexion...");
 
-            Socket clientSocket = serverSocket.accept();
+            Socket socket = serverSocket.accept();
             System.out.println("Client connecté.");
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
-            // Lire l'opération complète envoyée par le client
-            String operation = in.readLine();
-            System.out.println("Opération reçue : " + operation);
+            Operation op = (Operation) ois.readObject();
+            System.out.println("Opération reçue : " + op.getOperand1() + " " + op.getOperator() + " " + op.getOperand2());
 
-            // Calculer le résultat
-            String result = calculer(operation);
-
-            // Envoyer le résultat au client
-            out.println(result);
-
-            clientSocket.close();
-            System.out.println("Connexion fermée.");
-
-        } catch (IOException e) {
-            System.err.println("Erreur serveur : " + e.getMessage());
-        }
-    }
-
-    private static String calculer(String op) {
-        try {
-            String[] tokens = op.trim().split(" ");
-            if (tokens.length != 3) return "Format invalide. Utilisez : nombre1 opérateur nombre2";
-
-            double a = Double.parseDouble(tokens[0]);
-            String operateur = tokens[1];
-            double b = Double.parseDouble(tokens[2]);
-
-            return switch (operateur) {
-                case "+" -> String.valueOf(a + b);
-                case "-" -> String.valueOf(a - b);
-                case "*" -> String.valueOf(a * b);
-                case "/" -> b != 0 ? String.valueOf(a / b) : "Erreur : division par zéro";
-                default -> "Opérateur invalide";
+            double result = switch (op.getOperator()) {
+                case "+" -> op.getOperand1() + op.getOperand2();
+                case "-" -> op.getOperand1() - op.getOperand2();
+                case "*" -> op.getOperand1() * op.getOperand2();
+                case "/" -> op.getOperand2() != 0 ? op.getOperand1() / op.getOperand2() : Double.NaN;
+                default -> Double.NaN;
             };
-        } catch (Exception e) {
-            return "Erreur de calcul : " + e.getMessage();
+
+            oos.writeObject(result);
+            System.out.println("Résultat envoyé : " + result);
+
+            socket.close();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Erreur serveur : " + e.getMessage());
         }
     }
 }

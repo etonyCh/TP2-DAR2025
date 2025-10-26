@@ -3,6 +3,7 @@ package clientPackage;
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import sharedPackage.Operation;
 
 public class Client {
     public static void main(String[] args) {
@@ -12,24 +13,27 @@ public class Client {
         try (Socket socket = new Socket(SERVER_IP, PORT)) {
             System.out.println("Connecté au serveur.");
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
             Scanner scanner = new Scanner(System.in);
 
-            System.out.print("Entrez une opération (ex: 34 * 55) : ");
-            String operation = scanner.nextLine();
+            System.out.print("Entrez le premier nombre : ");
+            double a = scanner.nextDouble();
+            System.out.print("Entrez l'opérateur (+, -, *, /) : ");
+            String op = scanner.next();
+            System.out.print("Entrez le deuxième nombre : ");
+            double b = scanner.nextDouble();
 
-            // Envoyer l'opération au serveur
-            out.println(operation);
+            Operation operation = new Operation(a, op, b);
+            oos.writeObject(operation);
 
-            // Lire la réponse
-            String response = in.readLine();
-            System.out.println("Résultat reçu : " + response);
+            double result = (double) ois.readObject();
+            System.out.println("Résultat reçu : " + result);
 
             System.out.println("Appuyez sur Entrée pour quitter...");
-            scanner.nextLine();
+            scanner.nextLine(); scanner.nextLine();
 
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             System.err.println("Erreur client : " + e.getMessage());
         }
     }
